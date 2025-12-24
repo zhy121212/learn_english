@@ -4,7 +4,7 @@
 """
 from sqlmodel import select
 
-from sql_connect.sql_connect_system import SessionDep, English, create_session
+from sql_connect.sqllite_connect import SessionDep, English, create_session
 
 
 class LearningSystem(object):
@@ -25,6 +25,9 @@ class LearningSystem(object):
     def save_to_db(self, session: SessionDep, e_word=None, e_translation=None):
         # 使用数据库依赖
         english = English(e_word=e_word, e_translation=e_translation)
+        if session.exec(select(English).where(English.e_word == e_word)).all():
+            print('已存在,未再次添加')
+            return
         session.add(english)
         session.commit()
         session.refresh(english)
@@ -34,16 +37,46 @@ class LearningSystem(object):
     def learning_spell(self, session: SessionDep):
         # 练习多少组
         count = 0
-        n = int(input('要练习多少个'))
-        result = session.exec(select(English).limit(n)).all()
+        # 定义空字典,用于临时存放错误的
+        error_word = {}
+        try:
+            n = input('输入数量,回车默认999数量')
+        except:
+            n = input('输入数量,回车默认999数量')
+        if n == '':
+            n = 999
+            result = session.exec(select(English).limit(n)).all()
+        else:
+            n = int(n)
+            result = session.exec(select(English).limit(n)).all()
         for i in result:
-            if input(f'根据意思拼写单词, {i.e_translation}') == i.e_word:
+            if input(f'根据意思拼写单词, {i.e_translation} ') == i.e_word:
                 print('正确')
                 count += 1
             else:
                 print(f'错误, 正确的拼写应该为{i.e_word}')
+                error_word[i.e_translation] = i.e_word
         print(f'总共答对的次数为{count}, 正确率{count / len(result):.2%}')
-
+        if count / len(result) < 1:
+            while True:
+                if len(error_word) > 0:
+                    continue_exercise = input('继续错误习题练习请输入1,输入其他返回主菜单 ')
+                    if continue_exercise == '1':
+                        count_two = 0
+                        ec = error_word.copy()
+                        for i in ec:
+                            if input(f'根据意思拼写单词, {i} ') == error_word[i]:
+                                print('正确')
+                                count_two += 1
+                                del error_word[i]
+                            else:
+                                print(f'错误, 正确的拼写应该为{error_word[i]}')
+                        if len(error_word) == 0:
+                            print('再次练习,正确率为100%')
+                            break
+                        print(f'二次练习答对的次数为{count_two}, 正确率{count_two / len(ec):.2%}')
+                    else:
+                        break
     # 定义翻译英文
     def translation(self, session: SessionDep):
         # 练习多少组
@@ -52,13 +85,13 @@ class LearningSystem(object):
         result = session.exec(select(English).limit(n)).all()
         for i in result:
             if '/' in i.e_translation:
-                if input(f'根据单词翻译意思,{i.e_word}') in i.e_translation.split('/'):
+                if input(f'根据单词翻译意思,{i.e_word} ') in i.e_translation.split('/'):
                     print('正确')
                     count += 1
                 else:
                     print(f'错误, 正确的拼写应该为{i.e_translation}')
             else:
-                if input(f'根据单词翻译意思,{i.e_word}') == i.e_translation:
+                if input(f'根据单词翻译意思,{i.e_word}' ) == i.e_translation:
                     print('正确')
                     count += 1
                 else:
@@ -80,7 +113,7 @@ class LearningSystem(object):
         return result
 
     def save_file_to_db(self, session: SessionDep):
-        with open('../单词.txt', 'r', encoding='utf8') as f:
+        with open(r"E:\pythonProject\learn_english\learning_english\单词.txt", 'r', encoding='utf8') as f:
             while True:
                 # 每次读取一行
                 result = f.readline()
@@ -93,6 +126,9 @@ class LearningSystem(object):
                 result = result.split(' ')
                 translation = result[0]
                 word = result[1]
+                # 判断是否存在,如果存在跳过
+                if session.exec(select(English).where(English.e_word==word)).all():
+                    continue
                 # 把内容存到数据库
                 self.save_to_db(session, e_word=word, e_translation=translation)
 
