@@ -113,7 +113,7 @@ class LearningSystem(object):
         return result
 
     def save_file_to_db(self, session: SessionDep):
-        with open(r"E:\pythonProject\learn_english\learning_english\单词.txt", 'r', encoding='utf8') as f:
+        with open("learning_english/单词.txt", 'r', encoding='utf8') as f:
             while True:
                 # 每次读取一行
                 result = f.readline()
@@ -139,6 +139,9 @@ if __name__ == '__main__':
     # 测试
     ls = LearningSystem()
     session = next(create_session())
+    import os
+
+    print(os.getcwd())
     while True:
         ls.menu()
         result = input('输入功能编号')
