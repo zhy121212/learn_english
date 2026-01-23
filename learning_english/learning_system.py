@@ -11,8 +11,8 @@ class LearningSystem(object):
     # 属性
     # 方法
     # 定义静态方法菜单
-    @classmethod
-    def menu(cls):
+    @staticmethod
+    def menu():
         print('1,通过单词以及意思存入数据库')
         print('2,通过文件存入数据库')
         print('3,查询库内英文对应的翻译')
@@ -118,7 +118,7 @@ class LearningSystem(object):
         return result
 
     def save_file_to_db(self, session: SessionDep):
-        with open("learning_english/单词.txt", 'r', encoding='utf8') as f:
+        with open("data/单词.txt", 'r', encoding='utf8') as f:
             while True:
                 # 每次读取一行
                 result = f.readline()
