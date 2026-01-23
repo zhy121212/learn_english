@@ -13,11 +13,10 @@ class LearningSystem(object):
     # 定义静态方法菜单
     @classmethod
     def menu(cls):
-        print('1,存入数据库')
+        print('1,通过单词以及意思存入数据库')
         print('2,通过文件存入数据库')
-        print('3,查询英文')
-        print('4,查询翻译')
-
+        print('3,查询库内英文对应的翻译')
+        print('4,查询库内中文对应的翻译')
         print('5,根据中文意思拼写英文')
         print('6,根据英文翻译中文意思')
         print('7,随机100题得分挑战!')
@@ -62,8 +61,7 @@ class LearningSystem(object):
                 print(f'错误, 正确的拼写应该为{i.e_word}')
                 error_word[i.e_translation] = i.e_word
         else:
-            score = count / len(result) * 100
-            print(f'总共答对的次数为{count}, 正确率{count / len(result):.2%}, 得分为{score:.1f}')
+            print(f'总共答对的次数为{count}, 正确率{count / len(result):.2%}')
         if count / len(result) < 1:
             while True:
                 if len(error_word) > 0:
