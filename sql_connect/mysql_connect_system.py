@@ -20,7 +20,7 @@ class English(SQLModel, table=True):
 # 先创建引擎
 
 url = 'mysql+pymysql://root:root@localhost:3306/learn_english'
-engine = create_engine(url, echo=True)
+engine = create_engine(url)
 
 # 创建表
 SQLModel.metadata.create_all(engine)

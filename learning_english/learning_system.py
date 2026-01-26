@@ -23,7 +23,6 @@ class LearningSystem(object):
 
     # 定义存入数据库方法
     def save_to_db(self, session: SessionDep, e_word=None, e_translation=None):
-        # 使用数据库依赖
         english = English(e_word=e_word, e_translation=e_translation)
         if session.exec(select(English).where(English.e_word == e_word)).all():
             print('已存在,未再次添加')
@@ -31,7 +30,7 @@ class LearningSystem(object):
         session.add(english)
         session.commit()
         session.refresh(english)
-        print(f'添加成功, 信息为{english}')
+        print(f'添加成功, {english}')
 
     # 定义根据中文意思拼写英文方法
     def learning_spell(self, session: SessionDep):
@@ -40,9 +39,9 @@ class LearningSystem(object):
         # 定义空字典,用于临时存放错误的
         error_word = {}
         try:
-            n = input('输入数量,回车默认999数量')
+            n = int(input('输入数量,回车默认999数量'))
         except:
-            n = input('输入数量,回车默认999数量')
+            n = int(input('输入异常请重新输入数量,回车默认999数量'))
         if n == '':
             n = 999
             result = session.exec(select(English).limit(n)).all()
@@ -85,6 +84,7 @@ class LearningSystem(object):
     # 定义翻译英文
     def translation(self, session: SessionDep):
         # 练习多少组
+        # todo 待优化成拼写练习
         count = 0
         n = int(input('要练习多少个'))
         result = session.exec(select(English).limit(n)).all()
@@ -109,6 +109,7 @@ class LearningSystem(object):
         result = session.exec(select(English).where(English.e_word == e_word)).all()
         if not result:
             return '没有相关信息'
+        print(result)
         return result
 
     def query_translation(self, session: SessionDep, e_translation=None):
@@ -189,16 +190,19 @@ if __name__ == '__main__':
     # 测试
     ls = LearningSystem()
     session = next(create_session())
-    import os
-
-    print(os.getcwd())
     while True:
         ls.menu()
         result = input('输入功能编号')
         if result == '1':
-            word = input('单词')
-            translation = input('翻译')
-            ls.save_to_db(session, word, translation)
+            while True:
+                word = input('单词 ')
+                translation = input('中文翻译 ')
+                ls.save_to_db(session, word, translation)
+                num = input('继续添加输入1,输入其他退回主菜单, 回车默认退回主菜单')
+                if num == '1':
+                    continue
+                else:
+                    break
         elif result == '2':
             ls.save_file_to_db(session)
 

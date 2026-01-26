@@ -14,13 +14,16 @@ class English(SQLModel, table=True):
     e_word: str = Field(index=True)
     e_translation: str = Field(index=True)
 
+    def __str__(self):
+        return f'单词{self.e_word}, 对应的意思为{self.e_translation}'
+
 
 # sqlmodel连接的网址
 
 # 先创建引擎
 
 url = 'sqlite:///db.db'
-engine = create_engine(url, echo=True)
+engine = create_engine(url)
 
 # 创建表
 SQLModel.metadata.create_all(engine)
