@@ -11,15 +11,17 @@ class LearningSystem(object):
     # 属性
     # 方法
     # 定义静态方法菜单
+    # todo 关于 菜单优化
     @staticmethod
     def menu():
-        print('1,通过单词以及意思存入数据库')
-        print('2,通过文件存入数据库')
-        print('3,查询库内英文对应的翻译')
-        print('4,查询库内中文对应的翻译')
-        print('5,根据中文意思拼写英文')
-        print('6,根据英文翻译中文意思')
-        print('7,随机100题得分挑战!')
+        print('-------英语学习系统V1.0---------')
+        print('1,通过单词以及意思存入数据库 -----')
+        print('2,通过文件存入数据库 ')
+        print('3,查询库内英文对应的翻译 ')
+        print('4,查询库内中文对应的翻译 ')
+        print('5,根据中文意思拼写英文 ')
+        print('6,根据英文翻译中文意思 ')
+        print('7,随机100题得分挑战! ')
 
     # 定义存入数据库方法
     def save_to_db(self, session: SessionDep, e_word=None, e_translation=None):
@@ -81,6 +83,7 @@ class LearningSystem(object):
                         print(f'二次练习答对的次数为{count_two}, 正确率{count_two / len(ec):.2%}')
                     else:
                         break
+
     # 定义翻译英文
     def translation(self, session: SessionDep):
         # 练习多少组
@@ -96,7 +99,7 @@ class LearningSystem(object):
                 else:
                     print(f'错误, 正确的拼写应该为{i.e_translation}')
             else:
-                if input(f'根据单词翻译意思,{i.e_word}' ) == i.e_translation:
+                if input(f'根据单词翻译意思,{i.e_word}') == i.e_translation:
                     print('正确')
                     count += 1
                 else:
@@ -105,18 +108,30 @@ class LearningSystem(object):
 
     # 查询单词
     def query_word(self, session: SessionDep, e_word=None):
+        # todo 待优化模糊查询
         # 通过单词意思或者单词来查询相关信息
-        result = session.exec(select(English).where(English.e_word == e_word)).all()
+        result = session.exec(select(English).where(English.e_word == e_word)).first()
         if not result:
             return '没有相关信息'
-        print(result)
+
         return result
 
     def query_translation(self, session: SessionDep, e_translation=None):
-        result = session.exec(select(English).where(English.e_translation == e_translation)).first()
+        # todo 待优化模糊查询
+        result = session.exec(select(English).where(English.e_translation == e_translation)).all()
         if not result:
             return '没有相关信息'
         return result
+
+    def print_result(self, result):
+        """
+        定义打印查询的结果的一个函数
+        """
+        if isinstance(result, list):
+            for i in result:
+                print(i)
+            return
+        print(result)
 
     def save_file_to_db(self, session: SessionDep):
         with open("data/单词.txt", 'r', encoding='utf8') as f:
@@ -133,13 +148,12 @@ class LearningSystem(object):
                 translation = result[0]
                 word = result[1]
                 # 判断是否存在,如果存在跳过
-                if session.exec(select(English).where(English.e_word==word)).all():
+                if session.exec(select(English).where(English.e_word == word)).all():
                     continue
                 # 把内容存到数据库
                 self.save_to_db(session, e_word=word, e_translation=translation)
 
-
-    def get_random_100(self,session: SessionDep):
+    def get_random_100(self, session: SessionDep):
         """
         随机获取100到练习
         :return:
@@ -185,14 +199,14 @@ class LearningSystem(object):
                         break
 
 
-
 if __name__ == '__main__':
     # 测试
+    # todo 待把启动逻辑加到单独的方法
     ls = LearningSystem()
     session = next(create_session())
     while True:
         ls.menu()
-        result = input('输入功能编号')
+        result = input('输入功能编号 ')
         if result == '1':
             while True:
                 word = input('单词 ')
@@ -207,11 +221,11 @@ if __name__ == '__main__':
             ls.save_file_to_db(session)
 
         elif result == '3':
-            word = input('查询单词')
-            print(ls.query_word(session, word))
+            word = input('查询单词 ')
+            ls.print_result(ls.query_word(session, word))
         elif result == '4':
-            translation = input('查询翻译')
-            print(ls.query_translation(session, translation))
+            translation = input('查询翻译 ')
+            ls.print_result(ls.query_translation(session, translation))
         elif result == '5':
             ls.learning_spell(session)
         elif result == '6':
