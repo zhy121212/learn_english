@@ -41,9 +41,9 @@ class LearningSystem(object):
         # 定义空字典,用于临时存放错误的
         error_word = {}
         try:
-            n = int(input('输入数量,回车默认999数量'))
+            n = input('输入数量,回车默认999数量')
         except:
-            n = int(input('输入异常请重新输入数量,回车默认999数量'))
+            n = input('输入异常请重新输入数量,回车默认999数量')
         if n == '':
             n = 999
             result = session.exec(select(English).limit(n)).all()
@@ -134,24 +134,28 @@ class LearningSystem(object):
         print(result)
 
     def save_file_to_db(self, session: SessionDep):
-        with open("data/单词.txt", 'r', encoding='utf8') as f:
-            while True:
-                # 每次读取一行
-                result = f.readline()
-                # 判断是否有数据
-                if not result:
-                    return
-                # 去除\n
-                result = result.strip()
-                # 切分空格分开单词和意思
-                result = result.split(' ')
-                translation = result[0]
-                word = result[1]
-                # 判断是否存在,如果存在跳过
-                if session.exec(select(English).where(English.e_word == word)).all():
-                    continue
-                # 把内容存到数据库
-                self.save_to_db(session, e_word=word, e_translation=translation)
+        try:
+            with open("data/单词.txt", 'r', encoding='utf8') as f:
+                while True:
+                    # 每次读取一行
+                    result = f.readline()
+                    # 判断是否有数据
+                    if not result:
+                        return
+                    # 去除\n
+                    result = result.strip()
+                    # 切分空格分开单词和意思
+                    result = result.split(' ')
+                    translation = result[0]
+                    word = result[1]
+                    # 判断是否存在,如果存在跳过
+                    if session.exec(select(English).where(English.e_word == word)).all():
+                        continue
+                    # 把内容存到数据库
+                    self.save_to_db(session, e_word=word, e_translation=translation)
+        except:
+            with open("data/单词.txt", 'w', encoding='utf8') as f:
+                print('初次启动创建文件中')
 
     def get_random_100(self, session: SessionDep):
         """
