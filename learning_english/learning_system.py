@@ -5,7 +5,7 @@
 from sqlmodel import select
 from sqlalchemy.sql import func
 from sql_connect.sqllite_connect import SessionDep, English, create_session
-
+import os
 
 class LearningSystem(object):
     # 属性
@@ -154,6 +154,9 @@ class LearningSystem(object):
                     # 把内容存到数据库
                     self.save_to_db(session, e_word=word, e_translation=translation)
         except:
+            # 创建data文件夹
+            if not os.path.exists('data'):
+                os.mkdir('data')
             with open("data/单词.txt", 'w', encoding='utf8') as f:
                 print('初次启动创建文件中')
 
