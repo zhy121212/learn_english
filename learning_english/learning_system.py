@@ -108,17 +108,20 @@ class LearningSystem(object):
 
     # 查询单词
     def query_word(self, session: SessionDep, e_word=None):
-        # todo 待优化模糊查询
         # 通过单词意思或者单词来查询相关信息
-        result = session.exec(select(English).where(English.e_word == e_word)).first()
+        # todo 待优化为查询单词与意思为统一入口
+        # todo 待优化api接入 如果库内没有从api查询
+        # todo 增加精准查询入口 如果库内没有从api查询
+        search_pattern = f'%{e_word}%'
+        result = session.exec(select(English).where(English.e_word.ilike(search_pattern))).all()
         if not result:
             return '没有相关信息'
 
         return result
 
     def query_translation(self, session: SessionDep, e_translation=None):
-        # todo 待优化模糊查询
-        result = session.exec(select(English).where(English.e_translation == e_translation)).all()
+        search_pattern = f'%{e_translation}%'
+        result = session.exec(select(English).where(English.e_translation.ilike(search_pattern))).all()
         if not result:
             return '没有相关信息'
         return result
@@ -206,40 +209,43 @@ class LearningSystem(object):
                         break
 
 
+    def start(self,session):
+        while True:
+            ls.menu()
+            result = input('输入功能编号 ')
+            if result == '1':
+                while True:
+                    word = input('单词 ')
+                    translation = input('中文翻译 ')
+                    ls.save_to_db(session, word, translation)
+                    num = input('继续添加输入1,输入其他退回主菜单, 回车默认退回主菜单')
+                    if num == '1':
+                        continue
+                    else:
+                        break
+            elif result == '2':
+                ls.save_file_to_db(session)
+
+            elif result == '3':
+                word = input('查询单词 ')
+                ls.print_result(ls.query_word(session, word))
+            elif result == '4':
+                translation = input('查询翻译 ')
+                ls.print_result(ls.query_translation(session, translation))
+            elif result == '5':
+                ls.learning_spell(session)
+            elif result == '6':
+                ls.translation(session)
+
+            elif result == '7':
+                ls.get_random_100(session)
+
+            else:
+                break
+
 if __name__ == '__main__':
     # 测试
-    # todo 待把启动逻辑加到单独的方法
     ls = LearningSystem()
     session = next(create_session())
-    while True:
-        ls.menu()
-        result = input('输入功能编号 ')
-        if result == '1':
-            while True:
-                word = input('单词 ')
-                translation = input('中文翻译 ')
-                ls.save_to_db(session, word, translation)
-                num = input('继续添加输入1,输入其他退回主菜单, 回车默认退回主菜单')
-                if num == '1':
-                    continue
-                else:
-                    break
-        elif result == '2':
-            ls.save_file_to_db(session)
+    ls.start(session)
 
-        elif result == '3':
-            word = input('查询单词 ')
-            ls.print_result(ls.query_word(session, word))
-        elif result == '4':
-            translation = input('查询翻译 ')
-            ls.print_result(ls.query_translation(session, translation))
-        elif result == '5':
-            ls.learning_spell(session)
-        elif result == '6':
-            ls.translation(session)
-
-        elif result == '7':
-            ls.get_random_100(session)
-
-        else:
-            break
